@@ -9,20 +9,20 @@ class Trainer:
         # create new network for training
         self.net = net_type(batch_norm, dropout)
         self.net.train()
-        self.net.cuda()
+        self.net = self.net.cuda()
         self.experiment_name = str(net_type).split('.')[1].split('\'')[0] + " "
         self.experiment_name += "BatchNorm"*batch_norm + "Dropout"* dropout + f"Weight decay {weight_decay}"*(weight_decay != 0)
 
         # cache net's parameters for later reinitialization
         self.cache = net_type(batch_norm, dropout)
         self.cache.load_state_dict(self.net.state_dict())
-        self.cache.cuda()
+        self.cache = self.cache.cuda()
         
         # load saved target network (to make sure all experiments for given architecture are done with the same target)
         self.target = net_type(False, False)
         self.target.load_state_dict(torch.load(target_path))
         self.target.eval()
-        self.target.cuda()
+        self.target = self.target.cuda()
         for param in self.target.parameters():
             param.requires_grad = False
 
@@ -47,6 +47,7 @@ class Trainer:
         train_data, test_data = {}, {}
         for name, optimizer in self.optims.items():
             self.net.load_state_dict(self.cache.state_dict())
+            self.net.cuda()
             means_train, means_test = self._train(optimizer, name)
             train_data[name] = means_train
             test_data[name] = means_test
