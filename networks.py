@@ -46,9 +46,9 @@ class Conv(nn.Module):
             layers.append(nn.Conv2d(in_C, out_C, kernel_size=3, stride=2, padding=1))
             if batch_norm:
                 layers.append(nn.BatchNorm2d(out_C))
-            layers.append(nn.ReLU(True))
+            layers.append(nn.ReLU())
             if dropout:
-                layers.append(nn.Dropout2d(0.5, inplace=True))
+                layers.append(nn.Dropout2d(0.5, inplace=False))
             in_C = out_C
             out_C *= 2
         layers.append(nn.Conv2d(in_C, out_C, kernel_size=1))
@@ -77,9 +77,9 @@ class RNN(nn.Module):
             self.lstms.append(nn.LSTM(in_f, out_f).cuda())
             if batch_norm:
                 self.bns.append(nn.BatchNorm1d(out_f))
-            self.relus.append(nn.ReLU(True))
+            self.relus.append(nn.ReLU())
             if dropout:
-                self.drops.append(nn.Dropout(0.5, inplace=True))
+                self.drops.append(nn.Dropout(0.5, inplace=False))
             in_f = out_f
             out_f //= 2
         self.lstms.append(nn.LSTM(in_f, in_f).cuda())
