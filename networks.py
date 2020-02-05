@@ -17,9 +17,9 @@ class Linear(nn.Module):
             layers.append(nn.Linear(in_l, out_l))
             if batch_norm:
                 layers.append(nn.BatchNorm1d(out_l))
-            layers.append(nn.ReLU(True))
+            layers.append(nn.ReLU())
             if dropout:
-                layers.append(nn.Dropout(0.5, inplace=True))
+                layers.append(nn.Dropout(0.5, inplace=False))
             in_l = out_l
             out_l = int(out_l*1.25)
         layers.append(nn.Linear(in_l, in_l))
