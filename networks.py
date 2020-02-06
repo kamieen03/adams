@@ -103,9 +103,9 @@ class RNN(Net):
             self.lstms.append(nn.LSTM(in_f, out_f).cuda())
             if batch_norm:
                 self.bns.append(nn.BatchNorm1d(out_f))
-            self.relus.append(nn.ReLU(True))
+            self.relus.append(nn.ReLU())
             if dropout:
-                self.drops.append(nn.Dropout(0.5, inplace=True))
+                self.drops.append(nn.Dropout(0.5, inplace=False))
             in_f = out_f
             out_f //= 2
         self.lstms.append(nn.LSTM(in_f, in_f).cuda())
