@@ -3,7 +3,33 @@ import torch
 
 uniform = torch.distributions.Uniform(-100, 100)
 
-class Linear(nn.Module):
+class Net(nn.Module):
+    def __init__(self, batch_norm = False, dropout = False):
+        super(Net, self).__init__()
+
+    def __sub__(self, net2):
+        assert type(self) == type(net2)
+        diff = 0
+        i, j = 0, 0
+        MAXI, MAXJ = len(self.state_dict()), len(net2.state_dict())
+
+        while i < MAXI and j < MAXJ:
+            p1 = list(self.state_dict().values())[i]
+            p2 = list(net2.state_dict().values())[j]
+            if p1.shape != p2.shape:
+                if MAXI > MAXJ:
+                    i += 1
+                else:
+                    j += 1
+            else:
+                diff += (p1-p2).abs().mean()
+                i += 1
+                j += 1
+
+        return float(diff)
+    
+
+class Linear(Net):
     def __init__(self, batch_norm = False, dropout = False):
         super(Linear, self).__init__()
         self.IN = 128      # input vector length
@@ -34,7 +60,7 @@ class Linear(nn.Module):
         return self.net(x)
         
 
-class Conv(nn.Module):
+class Conv(Net):
     def __init__(self, batch_norm = False, dropout = False):
         super(Conv, self).__init__()
         in_C  = 3     # input channels
@@ -46,9 +72,9 @@ class Conv(nn.Module):
             layers.append(nn.Conv2d(in_C, out_C, kernel_size=3, stride=2, padding=1))
             if batch_norm:
                 layers.append(nn.BatchNorm2d(out_C))
-            layers.append(nn.ReLU(True))
+            layers.append(nn.ReLU(False))
             if dropout:
-                layers.append(nn.Dropout2d(0.5, inplace=True))
+                layers.append(nn.Dropout2d(0.5, inplace=False))
             in_C = out_C
             out_C *= 2
         layers.append(nn.Conv2d(in_C, out_C, kernel_size=1))
@@ -62,7 +88,7 @@ class Conv(nn.Module):
         return self.net(x)
 
 
-class RNN(nn.Module):
+class RNN(Net):
     def __init__(self, batch_norm = False, dropout = False):
         super(RNN, self).__init__()
         self.IN = 256

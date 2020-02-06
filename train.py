@@ -44,28 +44,30 @@ class Trainer:
         self.test_set  = torch.cat([self.net.gen_batch(self.B).unsqueeze(0) for _ in range(self.TEST_SIZE)]).cuda()
 
     def train_all(self):
-        train_data, test_data = {}, {}
+        train_data, test_data, diff_data = {}, {}, {}
         final = {}
 
         for name, optimizer in self.optims.items():
             self.net.load_state_dict(self.cache.state_dict())
             self.net.cuda()
-            means_train, means_test = self._train(optimizer, name)
+            means_train, means_test, diffs = self._train(optimizer, name)
             train_data[name] = means_train
             test_data[name] = means_test
+            diff_data[name] = diffs
             final[name] = {}
             final[name]['train'] = means_train[-1]
             final[name]['test'] = means_test[-1]
 
-        self.plot(train_data, test_data)
+        self.plot(train_data, test_data, diff_data)
         with open(f'results/{self.experiment_name}.txt', 'w+') as f:
             f.write(str(final))
 
     def _train(self, optimizer, name):
-        means_train, means_test = [], []
-        self._init_test(means_train, means_test)
+        means_train, means_test, diffs = [], [], []
+        self._init_test(means_train, means_test, diffs)
         for i in range(self.EPOCHS):
             losses = []
+            self.net.train()
             print(f'Train Epoch {i} optimizer {name} ...')
             for j in range(self.TRAIN_SIZE):
                 batch = self.train_set[j]
@@ -79,6 +81,7 @@ class Trainer:
             means_train.append(np.array(losses).mean())
 
             losses = []
+            self.net.eval()
             print(f'Test Epoch {i} optimizer {name} ...')
             for j in range(self.TEST_SIZE):
                 with torch.no_grad():
@@ -87,11 +90,12 @@ class Trainer:
                     y = self.net(batch)
                     loss = self.L2(y, yt)
                     losses.append(float(loss))
+            diffs.append(self.net - self.target)
             means_test.append(np.array(losses).mean())
 
-        return means_train, means_test
+        return means_train, means_test, diffs
 
-    def _init_test(self, means_train, means_test):
+    def _init_test(self, means_train, means_test, diffs):
         losses = []
         print("Init tests ...")
         with torch.no_grad():
@@ -110,9 +114,10 @@ class Trainer:
                 loss = self.L2(y, yt)
                 losses.append(float(loss))
         means_test.append(np.array(losses).mean())
+        diffs.append(self.net - self.target)
 
 
-    def plot(self, train_dict, test_dict):
+    def plot(self, train_dict, test_dict, diff_dict):
         plt.figure()
         colors = ['r', 'g', 'b']
         for color, (name, ys) in zip(colors, train_dict.items()):
@@ -123,8 +128,17 @@ class Trainer:
         plt.xlim(0, self.EPOCHS)
         plt.xticks(range(self.EPOCHS+1))
         plt.title(self.experiment_name)
-        #plt.show()
         plt.savefig(f'images/{self.experiment_name}.jpg')
+
+        plt.figure()
+        colors = ['r', 'g', 'b']
+        for color, (name, ys) in zip(colors, diff_dict.items()):
+            plt.plot(range(self.EPOCHS+1), ys, color, label=name)
+        plt.legend()
+        plt.xlim(0, self.EPOCHS)
+        plt.xticks(range(self.EPOCHS+1))
+        plt.title(self.experiment_name)
+        plt.savefig(f'images/diff_{self.experiment_name}.jpg')
 
 
 def main():
