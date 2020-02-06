@@ -142,17 +142,14 @@ class Trainer:
 
 
 def main():
-    Trainer(Conv, 'targets/conv.pth', batch_norm=False, dropout=False, weight_decay=0).train_all()
-    Trainer(Linear, 'targets/linear.pth', batch_norm=True,  dropout=False, weight_decay=0).train_all()
-    #t.train_all()
-    #t = Trainer(Linear, 'targets/linear.pth', batch_norm=False, dropout=True,  weight_decay=0)
-    #t.train_all()
-    #t = Trainer(Linear, 'targets/linear.pth', batch_norm=False, dropout=False, weight_decay=0.01)
-    #t.train_all()
-    #t = Trainer(Linear, 'targets/linear.pth', batch_norm=False, dropout=False, weight_decay=0.001)
-    #t.train_all()
-    #t = Trainer(Linear, 'targets/linear.pth', batch_norm=False, dropout=False, weight_decay=0.0001)
-    #t.train_all()
+    cls = Linear
+    path='linear'
+    Trainer(cls, f'targets/{path}.pth', batch_norm=False, dropout=False, weight_decay=0).train_all()
+    Trainer(cls, f'targets/{path}.pth', batch_norm=True,  dropout=False, weight_decay=0).train_all()
+    Trainer(cls, f'targets/{path}.pth', batch_norm=False, dropout=True,  weight_decay=0).train_all()
+    Trainer(cls, f'targets/{path}.pth', batch_norm=False, dropout=False, weight_decay=0.1).train_all()
+    Trainer(cls, f'targets/{path}.pth', batch_norm=False, dropout=False, weight_decay=0.01).train_all()
+    Trainer(cls, f'targets/{path}.pth', batch_norm=False, dropout=False, weight_decay=0.001).train_all()
 
 if __name__ == '__main__':
     main()
